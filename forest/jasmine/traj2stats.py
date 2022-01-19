@@ -169,6 +169,34 @@ def gps_summaries(traj,tz_str,option):
         window = 60*60
         h = (end_stamp - start_stamp)//window
         
+    if option == "half_day":
+        ## find starting and ending time
+        sys.stdout.write("Calculating the half-day summary stats..." + '\n')
+        time_list = stamp2datetime(traj[0,3],tz_str)
+        time_list[4]=0; time_list[5]=0 #zero out minute and second
+        
+        if time_list[3] > 12: #they started the evening before so we'll start their study the next day
+            time_list[2] = time_list[2] + 1
+            
+        time_list[3] = 2 #We're going to say that each "day" starts at 2am so we can split the day in 2 at 2pm
+            
+        start_stamp = datetime2stamp(time_list,tz_str) #start at 2am on the first day we have any data
+        
+        time_list = stamp2datetime(traj[-1,3],tz_str)
+        
+        if time_list[3] > 2: #end their study the next day
+            time_list[2] = time_list[2] + 1
+        
+        time_list[3] = 2; time_list[4]=0; time_list[5]=0
+        end_stamp = datetime2stamp(time_list,tz_str)
+        ## start_time, end_time are exact points (if it ends at 2019-3-8 11 o'clock, then 11 shouldn't be included)
+        window = 60*60*12 #start at 2am, end at 2am
+        h = (end_stamp - start_stamp)//window
+        
+        traj['hour_of_day'] = traj[,3].hour
+        
+        traj = traj[(traj['hour_of_day'] > 5) & (traj['hour_of_day'] < 23)] #only care about hours between 5am-11am
+        
 
     if option == "daily":
         ## find starting and ending time
@@ -192,6 +220,11 @@ def gps_summaries(traj,tz_str,option):
             month = current_time_list[1]
             day = current_time_list[2]
             hour = current_time_list[3]
+            if option = "half_day":
+                if hour == 2:
+                    hour = 'morning'
+                else:
+                    hour = 'evening'
             ## take a subset, the starting point of the last traj <t1 and the ending point of the first traj >t0
             index = (traj[:,3]<t1)*(traj[:,6]>t0)
             temp = traj[index,:]
@@ -250,11 +283,19 @@ def gps_summaries(traj,tz_str,option):
                 sd_p_dur = 0
             if option=="hourly":
                 if obs_dur==0:
-                    summary_stats.append([year,month,day,hour,0,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA])
+                    summary_stats.append([year,month,day,hour,0,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA])
                 else:
                     summary_stats.append([year,month,day,hour,obs_dur/60, time_at_home/60,dist_traveled, max_dist_home,
                                           total_flight_time/60, av_f_len,sd_f_len,av_f_dur/60,sd_f_dur/60,
                                           total_pause_time/60,av_p_dur/60,sd_p_dur/60, mean_dist_home])
+            if option=="half_day":
+                if obs_dur==0:
+                    summary_stats.append([year,month,day,hour,0,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA,pd.NA])
+                else:
+                    summary_stats.append([year,month,day,hour,obs_dur/60, time_at_home/60,dist_traveled, max_dist_home,
+                                          total_flight_time/60, av_f_len,sd_f_len,av_f_dur/60,sd_f_dur/60,
+                                          total_pause_time/60,av_p_dur/60,sd_p_dur/60, mean_dist_home])
+                                          
             if option=="daily":
                 hours = []
                 for i in range(temp.shape[0]):
@@ -294,6 +335,11 @@ def gps_summaries(traj,tz_str,option):
             summary_stats.columns = ["year","month","day","hour","obs_duration","home_time","dist_traveled","max_dist_home",
                                      "total_flight_time","av_flight_length","sd_flight_length","av_flight_duration","sd_flight_duration",
                                      "total_pause_time","av_pause_duration","sd_pause_duration", "mean_dist_home"]
+        if option == "half_day":
+            summary_stats.columns = ["year","month","day","hour","obs_duration","home_time","dist_traveled","max_dist_home",
+                                     "total_flight_time","av_flight_length","sd_flight_length","av_flight_duration","sd_flight_duration",
+                                     "total_pause_time","av_pause_duration","sd_pause_duration", "mean_dist_home"]
+                                     
         if option == "daily":
             summary_stats.columns = ["year","month","day","obs_duration","obs_day","obs_night","home_time","dist_traveled","max_dist_home",
                                      "radius","diameter","num_sig_places","entropy",
@@ -303,7 +349,11 @@ def gps_summaries(traj,tz_str,option):
         if option == "hourly":
             summary_stats = pd.DataFrame(columns=["year","month","day","hour","obs_duration","home_time","dist_traveled","max_dist_home",
                                      "total_flight_time","av_flight_length","sd_flight_length","av_flight_duration","sd_flight_duration",
-                                     "total_pause_time","av_pause_duration","sd_pause_duration"])
+                                     "total_pause_time","av_pause_duration","sd_pause_duration", "mean_dist_home"])
+        if option == "half_day":
+            summary_stats = pd.DataFrame(columns=["year","month","day","hour","obs_duration","home_time","dist_traveled","max_dist_home",
+                                     "total_flight_time","av_flight_length","sd_flight_length","av_flight_duration","sd_flight_duration",
+                                     "total_pause_time","av_pause_duration","sd_pause_duration", "mean_dist_home"])
         if option == "daily":
             summary_stats = pd.DataFrame(columns=["year","month","day","obs_duration","obs_day","obs_night","home_time","dist_traveled","max_dist_home",
                                      "radius","diameter","num_sig_places","entropy",
