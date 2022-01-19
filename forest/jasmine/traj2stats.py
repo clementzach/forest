@@ -193,7 +193,7 @@ def gps_summaries(traj,tz_str,option):
         window = 60*60*12 #start at 2am, end at 2am
         h = (end_stamp - start_stamp)//window
         
-        traj['hour_of_day'] = traj[:,3].hour
+        traj['hour_of_day'] = traj[:,3].dt.hour
         
         traj = traj[(traj['hour_of_day'] > 5) & (traj['hour_of_day'] < 23)] #only care about hours between 5am-11am
         
