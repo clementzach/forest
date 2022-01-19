@@ -168,7 +168,7 @@ def gps_summaries(traj,tz_str,option):
         ## start_time, end_time are exact points (if it ends at 2019-3-8 11 o'clock, then 11 shouldn't be included)
         window = 60*60
         h = (end_stamp - start_stamp)//window
-
+        
 
     if option == "daily":
         ## find starting and ending time
@@ -222,6 +222,7 @@ def gps_summaries(traj,tz_str,option):
             d_home_2 = great_circle_dist(home_x,home_y,temp[:,4],temp[:,5])
             d_home = (d_home_1+d_home_2)/2
             max_dist_home = max(np.concatenate((d_home_1,d_home_2)))
+            mean_dist_home = np.mean(d_home)
             time_at_home = sum((temp[:,6]-temp[:,3])[d_home<=50])
             mov_vec = np.round(great_circle_dist(temp[:,4],temp[:,5],temp[:,1],temp[:,2]),0)
             flight_d_vec = mov_vec[temp[:,0]==1]
@@ -253,7 +254,7 @@ def gps_summaries(traj,tz_str,option):
                 else:
                     summary_stats.append([year,month,day,hour,obs_dur/60, time_at_home/60,dist_traveled, max_dist_home,
                                           total_flight_time/60, av_f_len,sd_f_len,av_f_dur/60,sd_f_dur/60,
-                                          total_pause_time/60,av_p_dur/60,sd_p_dur/60])
+                                          total_pause_time/60,av_p_dur/60,sd_p_dur/60, mean_dist_home])
             if option=="daily":
                 hours = []
                 for i in range(temp.shape[0]):
@@ -292,7 +293,7 @@ def gps_summaries(traj,tz_str,option):
         if option == "hourly":
             summary_stats.columns = ["year","month","day","hour","obs_duration","home_time","dist_traveled","max_dist_home",
                                      "total_flight_time","av_flight_length","sd_flight_length","av_flight_duration","sd_flight_duration",
-                                     "total_pause_time","av_pause_duration","sd_pause_duration"]
+                                     "total_pause_time","av_pause_duration","sd_pause_duration", "mean_dist_home"]
         if option == "daily":
             summary_stats.columns = ["year","month","day","obs_duration","obs_day","obs_night","home_time","dist_traveled","max_dist_home",
                                      "radius","diameter","num_sig_places","entropy",
