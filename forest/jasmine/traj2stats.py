@@ -220,7 +220,7 @@ def gps_summaries(traj,tz_str,option):
             month = current_time_list[1]
             day = current_time_list[2]
             hour = current_time_list[3]
-            if option = "half_day":
+            if option == "half_day":
                 if hour == 2:
                     hour = 'morning'
                 else:
