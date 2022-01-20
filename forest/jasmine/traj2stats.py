@@ -193,10 +193,14 @@ def gps_summaries(traj,tz_str,option):
         window = 60*60*12 #start at 2am, end at 2am
         h = (end_stamp - start_stamp)//window
         
-        traj['hour_of_day'] = traj[:,3].dt.hour
+        datetime_series = pd.to_datetime(traj[:,3], unit='s')
+
+        local_series = datetime_series.tz_localize("UTC").tz_convert(tz_str)
+  
+        hour_of_day = local_series.hour
         
-        traj = traj[(traj['hour_of_day'] > 5) & (traj['hour_of_day'] < 23)] #only care about hours between 5am-11am
-        
+        traj = traj[(hour_of_day >= 5) & (hour_of_day <= 23)] #only care about hours between 5am-11am
+
 
     if option == "daily":
         ## find starting and ending time
