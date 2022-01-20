@@ -193,13 +193,19 @@ def gps_summaries(traj,tz_str,option):
         window = 60*60*12 #start at 2am, end at 2am
         h = (end_stamp - start_stamp)//window
         
-        datetime_series = pd.to_datetime(traj[:,3], unit='s')
-
-        local_series = datetime_series.tz_localize("UTC").tz_convert(tz_str)
-  
-        hour_of_day = local_series.hour
+        # get hour of start of flights
+        pre_datetime_series = pd.to_datetime(traj[:,3], unit='s') 
+        pre_local_series = pre_datetime_series.tz_localize("UTC").tz_convert(tz_str)
+        pre_hour_of_day = pre_local_series.hour
         
-        traj = traj[(hour_of_day >= 5) & (hour_of_day <= 23)] #only care about hours between 5am-11am
+        #get hour of end of flights
+        post_datetime_series = pd.to_datetime(traj[:,6], unit='s')
+        post_local_series = post_datetime_series.tz_localize("UTC").tz_convert(tz_str)
+        post_hour_of_day = post_local_series.hour
+        
+        #only care about when starts and ends between 5am-11pm
+        traj = traj[(pre_hour_of_day >= 5) & (post_hour_of_day =< 23), :] 
+        
 
 
     if option == "daily":
