@@ -204,7 +204,7 @@ def gps_summaries(traj,tz_str,option):
         post_hour_of_day = post_local_series.hour
         
         #only care about when starts and ends between 5am-11pm
-        traj = traj[(pre_hour_of_day >= 5) & (post_hour_of_day =< 23), :] 
+        traj = traj[(pre_hour_of_day >= 5) & (post_hour_of_day <= 23), :] 
         
 
 
