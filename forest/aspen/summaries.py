@@ -146,7 +146,7 @@ def by_survey_administration_from_agg(sycamore_folder):
         None. Writes files with information. 
     
     '''
-    in_path = os.path.join(out_folder, 'agg_survey_data.csv')
+    in_path = os.path.join(sycamore_folder, 'agg_survey_data.csv')
     df = pd.read_csv(in_path)
     df['Local time'] = pd.to_datetime(df['Local time'])
     
@@ -221,7 +221,7 @@ def by_survey_administration_from_agg(sycamore_folder):
             colnames = colnames +  [f"question_{i+1}" for i in range(len(output_df.columns) - len(colnames))]
             output_df.columns = colnames
             
-            output_df.to_csv(os.path.join(out_folder, survey_id + ".csv"), index = False)
+            output_df.to_csv(os.path.join(sycamore_folder, survey_id + ".csv"), index = False)
     
     
     
