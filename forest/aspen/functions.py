@@ -27,8 +27,8 @@ def read_and_aggregate(download_folder, beiwe_id, data_stream, tz_str = "UTC"):
     #Note: this is similar to a function in sycamore. Sycamore may be able to use this one, but this one couldn't use the one from sycamore. 
     st_path = os.path.join(download_folder, beiwe_id, data_stream)
     if os.path.isdir(st_path):
-        # get all survey timings files
-        all_files = glob.glob(os.path.join(st_path, '*.csv'))
+        # get all csv files in immediate or subdirectories
+        all_files = glob.glob(os.path.join(st_path, '**/*.csv'), recursive=True)
         # Sort file paths for when they're read in
         all_files = sorted(all_files)
         if len(all_files) > 0:
@@ -66,7 +66,7 @@ def count_files(download_folder, beiwe_id, data_stream, tz_str = "UTC"):
     '''
     st_path = os.path.join(download_folder, beiwe_id, data_stream)
     if os.path.isdir(st_path):
-        all_files = [x.split(os.path.sep)[-1][:-4] for x in glob.glob(os.path.join(st_path, '*.csv'))]
+        all_files = [file.split('.')[0]  for root, dirs, files in os.walk(st_path) for file in files if file.split('.')[0] != '']
         if len(all_files) > 0:
             dates_df = pd.DataFrame(all_files, columns = ['utc_time'])
             dates_df.utc_time = dates_df.utc_time.apply(lambda x: x.replace("_", ":"))
@@ -80,10 +80,10 @@ def count_files(download_folder, beiwe_id, data_stream, tz_str = "UTC"):
             dates_df['day'] = dates_df.local_time.dt.date
             counts_df = pd.DataFrame(dates_df.day.value_counts()).reset_index()
 
-            counts_df.rename({'day': data_stream + '_' + 'count', 'index': 'date'}, axis = 1,inplace = True)
+            counts_df.rename({'day': data_stream + '_file_count', 'index': 'date'}, axis = 1,inplace = True)
             return(counts_df)
 
-    counts_df = pd.DataFrame({data_stream + '_' + 'count': [], 'date' : []}) #blank df with same cols
+    counts_df = pd.DataFrame({data_stream + '_file_count': [], 'date' : []}) #blank df with same cols
     counts_df['date'] = counts_df['date'].astype('datetime64[ns]')
     return(counts_df)
         
@@ -101,7 +101,7 @@ def get_count_per_day(aggregated_data, prefix_str):
         
     """
     if aggregated_data.shape[0] == 0:
-        blank_df = pd.DataFrame(columns = ['date', prefix_str + '_count', prefix_str + '_any_data'])
+        blank_df = pd.DataFrame(columns = ['date', prefix_str + '_line_count', prefix_str + '_any_data'])
         blank_df['date'] = blank_df['date'].astype('datetime64[ns]')
         return(blank_df)
         
@@ -120,7 +120,7 @@ def get_count_per_day(aggregated_data, prefix_str):
         obs_counts_df_list.append(temp_df)
         date = date + pd.Timedelta(1,unit = 'day') #increment to next day
     obs_counts_df = pd.concat(obs_counts_df_list, axis = 0, ignore_index = True) #bind dfs together
-    obs_counts_df.rename(columns = {'count': prefix_str + '_count', 'any_data': prefix_str + '_any_data'  }, inplace = True)
+    obs_counts_df.rename(columns = {'count': prefix_str + '_line_count', 'any_data': prefix_str + '_any_data'  }, inplace = True)
 
     return(obs_counts_df)
   

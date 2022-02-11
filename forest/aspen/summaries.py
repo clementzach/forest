@@ -15,12 +15,9 @@ ALL_DATA_STREAMS = ['accelerometer', 'ambient_audio', 'app_log', 'audio_recordin
 'calls', 'devicemotion', 'gps', 'gyro', 'identifiers', 'image_survey', 'ios_log', 'magnetometer', 'power_state', 'proximity', 'reachability',
 'survey_answers', 'survey_timings', 'texts', 'wifi']
 
-ALL_DATA_STREAMS = ['accelerometer', 'ambient_audio', 'app_log', 'audio_recordings', 'bluetooth',
-'calls', 'devicemotion', 'gps', 'gyro', 'identifiers', 'image_survey', 'ios_log', 'magnetometer', 'power_state', 'proximity', 'reachability',
-'survey_answers', 'survey_timings', 'texts', 'wifi']
 
-LINE_COUNT_STREAMS = ['app_log','calls','image_survey','ios_log', 'power_state', 'proximity', 'reachability', 'survey_answers', 'survey_timings', 'texts']
-FILE_COUNT_STREAMS = ['audio_recordings', 'ambient_audio']
+LINE_COUNT_STREAMS = ['app_log','calls','image_survey','ios_log', 'power_state', 'proximity', 'reachability', 'survey_timings', 'texts']
+FILE_COUNT_STREAMS = ['audio_recordings', 'ambient_audio', 'survey_answers']
 TIME_COUNT_DICT = {'accelerometer': 30, 'bluetooth': 660, 'devicemotion':660, 'gps':900, 'gyro':30, 'magnetometer':660}
 
 
