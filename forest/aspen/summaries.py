@@ -9,6 +9,7 @@ import requests
 import mano.sync as msync
 import mano
 import shutil
+import sys
 
 from .functions import get_time_per_day, get_count_per_day, read_and_aggregate, count_files
 ALL_DATA_STREAMS = ['accelerometer', 'ambient_audio', 'app_log', 'audio_recordings', 'bluetooth',
@@ -64,6 +65,23 @@ def download_data(keyring,  study_id, download_folder, users = [], time_start = 
         except requests.exceptions.ChunkedEncodingError:
             print(f'Network failed in download of {u}')
             pass
+        except KeyboardInterrupt:
+            print("Someone closed the program")
+            sys.exit()
+        except requests.exceptions.JSONDecodeError: 
+            print("Unknown API error occurred. Retrying for this user")
+            num_tries = 0
+            while num_tries < 3:
+                try:
+                    zf = msync.download(keyring, study_id, u, data_streams, time_start = time_start, time_end = time_end)
+                    if zf is not None:
+                        zf.extractall(download_folder)
+                    num_tries = 5
+                except requests.exceptions.JSONDecodeError:
+                    num_tries = num_tries + 1
+                    print(f"Try {num_tries}..."
+                    
+                
 
         if zf is None:
             print(f'No data for {u}; nothing written')
