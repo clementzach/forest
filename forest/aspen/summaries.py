@@ -57,31 +57,28 @@ def download_data(keyring,  study_id, download_folder, users = [], time_start = 
     
     for u in users:
         zf = None
-        try:
-            print(f'Downloading data for {u}')
-            zf = msync.download(keyring, study_id, u, data_streams, time_start = time_start, time_end = time_end)
-            if zf is not None:
-                zf.extractall(download_folder)
-        except requests.exceptions.ChunkedEncodingError:
-            print(f'Network failed in download of {u}')
-            pass
-        except KeyboardInterrupt:
-            print("Someone closed the program")
-            sys.exit()
-        except requests.exceptions.JSONDecodeError: 
-            print("Unknown API error occurred. Retrying for this user")
-            num_tries = 0
-            while num_tries < 3:
-                try:
-                    zf = msync.download(keyring, study_id, u, data_streams, time_start = time_start, time_end = time_end)
-                    if zf is not None:
-                        zf.extractall(download_folder)
-                    num_tries = 5
-                except requests.exceptions.JSONDecodeError:
-                    num_tries = num_tries + 1
-                    print(f"Try {num_tries}..."
-                    
-                
+        download_success = False
+        num_tries = 0
+        while not download_success:
+            try:
+                print(f'Downloading data for {u}')
+                zf = msync.download(keyring, study_id, u, data_streams, time_start = time_start, time_end = time_end)
+                if zf is not None:
+                    zf.extractall(download_folder)
+                download_success = True
+            except requests.exceptions.ChunkedEncodingError:
+                print(f'Network failed in download of {u}, try {num_tries}')
+                num_tries = num_tries + 1
+            except KeyboardInterrupt:
+                print("Someone closed the program")
+                sys.exit()
+            except requests.exceptions.JSONDecodeError: 
+                print(f'Network failed in download of {u}, try {num_tries}')
+                num_tries = num_tries + 1
+            if num_tries > 5:
+                download_success = True
+                print(f"Too many failures; skipping user {u}")
+
 
         if zf is None:
             print(f'No data for {u}; nothing written')
