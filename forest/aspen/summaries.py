@@ -91,7 +91,7 @@ def download_data(keyring,  study_id, download_folder, users = [], time_start = 
 
 def monitor_data_quantities(download_folder, output_folder, 
 line_count_streams = LINE_COUNT_STREAMS, file_count_streams = FILE_COUNT_STREAMS, 
-time_count_dict = TIME_COUNT_DICT, tz_str = "UTC"):
+time_count_dict = TIME_COUNT_DICT, file_size_streams = [], tz_str = "UTC"):
     '''
     Generates a csv file with data quantities downloaded by date
     
@@ -135,6 +135,9 @@ time_count_dict = TIME_COUNT_DICT, tz_str = "UTC"):
         for d_stream in time_count_dict.keys():
             agg_df = read_and_aggregate(download_folder = download_folder, beiwe_id = u, data_stream = d_stream, tz_str = tz_str)
             summary_df = get_time_per_day(aggregated_data = agg_df, diff_seconds = time_count_dict[d_stream], prefix_str = d_stream)
+            user_df = user_df.merge(summary_df, on = 'date', how = 'outer')
+        for d_stream in file_size_streams:
+            summary_df = file_size(download_folder, u, d_stream, tz_str)
             user_df = user_df.merge(summary_df, on = 'date', how = 'outer')
 
         user_df['beiwe_id'] = u

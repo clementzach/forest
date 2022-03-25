@@ -86,6 +86,59 @@ def count_files(download_folder, beiwe_id, data_stream, tz_str = "UTC"):
     counts_df = pd.DataFrame({data_stream + '_file_count': [], 'date' : []}) #blank df with same cols
     counts_df['date'] = counts_df['date'].astype('datetime64[ns]')
     return(counts_df)
+
+
+def file_size(download_folder, beiwe_id, data_stream, tz_str="UTC"):
+    '''
+    Counts the number of files in a data stream per day
+
+    Args:
+        download_folder (str):
+            path to downloaded data. This is a folder that includes the user data in a subfolder with the beiwe_id as the subfolder name
+        beiwe_id (str):
+            ID of user of which to count files
+        data_stream (str):
+            Data stream to aggregate. Must be a datastream name as downloaded from the server
+        tz_str (str):
+            Time Zone to use to define days and to be used in date column of output
+    Returns:
+        counts_df (DataFrame): dataframe with stacked data, a field for the beiwe ID, a field for the day of week.
+
+    '''
+    st_path = os.path.join(download_folder, beiwe_id, data_stream)
+    if os.path.isdir(st_path):
+        all_dates = [file.split('.')[0] for root, dirs, files in
+                     os.walk(st_path) for file in files if
+                     file.split('.')[0] != '']
+
+        all_sizes = [os.path.getsize(os.path.join(st_path,file)) for root, dirs, files in
+                     os.walk(st_path) for file in files if
+                     file.split('.')[0] != '']
+        if len(all_dates) > 0:
+            dates_df = pd.DataFrame({'utc_time': all_dates, 'file_size':all_sizes})
+            dates_df.utc_time = dates_df.utc_time.apply(
+                lambda x: x.replace("_", ":"))
+
+            dates_df.utc_time = pd.to_datetime(dates_df.utc_time)
+            if dates_df.dtypes[
+                'utc_time'] == "datetime64[ns]":  ## Not timezone localized
+                dates_df['utc_time'] = dates_df['utc_time'].dt.tz_localize(
+                    'UTC')
+                # assume they're from UTC if no TZ info included in filename
+
+            dates_df['local_time'] = dates_df.utc_time.dt.tz_convert(tz_str)
+            dates_df['day'] = dates_df.local_time.dt.date
+            size_df = dates_df.groupby('day').file_size.agg('sum').reset_index()
+
+            size_df.rename(
+                {'file_size': data_stream + '_file_size', 'day' : 'date'}, axis=1,
+                inplace=True)
+            return (size_df)
+
+    size_df = pd.DataFrame({data_stream + '_file_size': [],
+                              'date': []})  # blank df with same cols
+    size_df['date'] = size_df['date'].astype('datetime64[ns]')
+    return (size_df)
         
         
 def get_count_per_day(aggregated_data, prefix_str):
